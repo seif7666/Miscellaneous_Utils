@@ -57,18 +57,84 @@ public class TreeDictionary<K extends Comparable<K>,V> implements IDictionary<K,
         }
     }
 
+    /**
+     * We need to get the parent tree for the node carrying the key.
+     * Get the tree to be removed.
+     * Get the right tree of that tree get it's leftmost.
+     * If no right get left rightmost.
+     *
+     * @param key: key
+     * 
+     */
     @Override
     public V remove(K key) {
         checkNullity(key);
-        ComparableBinaryTreeNode temp = getTree(key);
-        if (temp != null) {
-            V element = temp.value;
-            temp.value = null;
-            size--;
-            System.out.println("Element returned is " + element + "\t new tree is " + temp);
-            return element;
+        if(root==null)
+            return null;
+        ComparableBinaryTreeNode parent=root;
+        while(true){
+            int comparison=parent.key.compareTo(key);
+            if(comparison>0){
+                if(parent.left==null)
+                    return null;//Not found.
+                if(parent.left.key.equals(key)){//Left is required
+                    ComparableBinaryTreeNode toBeRemoved=parent.left;
+                    if(toBeRemoved.right!=null){
+                        ComparableBinaryTreeNode temp=toBeRemoved.right.getLeftMost();
+                        temp.left=toBeRemoved.left;
+                        parent.left=temp;//Most smaller branch in right of removed will carry in its left the left of removed.
+                    }
+                    else if(toBeRemoved.left!=null){
+                        parent.left=toBeRemoved.left;
+                    }
+                    else{
+                        parent.left=null;
+                    }
+                    return toBeRemoved.value;
+                }
+                else
+                    parent=parent.left;
+            }
+            else if(comparison<0){//smaller
+                if(parent.right==null)
+                    return null;
+                if(parent.right.key.equals(key)){
+                    ComparableBinaryTreeNode toBeRemoved=parent.right;
+                    if(toBeRemoved.right!=null){
+                        ComparableBinaryTreeNode temp=toBeRemoved.right.getLeftMost();
+                        temp.left=toBeRemoved.left;
+                        parent.right=temp;//Most smaller branch in right of removed will carry in its left the left of removed.
+                    }
+                    else if(toBeRemoved.left!=null){
+                        parent.right=toBeRemoved.left;
+                    }
+                    else{
+                        parent.right=null;
+                    }
+                    return toBeRemoved.value;
+                }
+                else{
+                    parent=parent.right;
+                }
+            }
+
+
+            else{//Equal to each other
+                V element=parent.value;
+                if(parent.right!=null){
+                    ComparableBinaryTreeNode temp= parent.right.getLeftMost();
+                    temp.left= parent.left;
+                    parent=parent.right;
+                }
+                else if(parent.left!=null){
+                    parent=parent.left;
+                }
+                else{
+                    parent=null;
+                }
+                return element;
+            }
         }
-        return null;
     }
 
     @Override
@@ -105,6 +171,23 @@ public class TreeDictionary<K extends Comparable<K>,V> implements IDictionary<K,
                 System.out.print(" , ");
                 inorderPrint(root.right);
             }
+        }
+
+        private  ComparableBinaryTreeNode getRightMost(){
+            ComparableBinaryTreeNode temp=root;
+            while(temp!=null){
+                temp=temp.right;
+            }
+            return temp;
+
+        }
+        private ComparableBinaryTreeNode getLeftMost(){
+            ComparableBinaryTreeNode temp=root;
+            while(temp!=null){
+                temp=temp.left;
+            }
+            return temp;
+
         }
 
         @Override
